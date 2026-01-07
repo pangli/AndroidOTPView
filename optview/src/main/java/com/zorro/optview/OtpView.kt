@@ -80,7 +80,7 @@ class OtpView @JvmOverloads constructor(
     private var defaultAddAnimator: ValueAnimator? = null
     private var isAnimationEnable = false
     private var blink: Blink? = null
-    private var isCursorVisible: Boolean
+    private var isCursorVisible: Boolean = false
     private var drawCursor = false
     private var cursorHeight = 0f
     private var cursorWidth: Int = 2
@@ -94,6 +94,7 @@ class OtpView @JvmOverloads constructor(
     private var onOtpCompletionListener: OnOtpCompletionListener? = null
 
     init {
+        super.setCursorVisible(false)
         val res = resources
         paintC = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.STROKE
@@ -122,7 +123,7 @@ class OtpView @JvmOverloads constructor(
                         res.getDimensionPixelSize(R.dimen.otp_view_item_line_width).toFloat()
                     ).toInt()
                     lineColors = getColorStateList(R.styleable.OtpView_OtpLineColor)
-                    isCursorVisible = getBoolean(R.styleable.OtpView_android_cursorVisible, true)
+                    isCursorVisible = getBoolean(R.styleable.OtpView_android_cursorVisible, false)
                     cursorColor = getColor(R.styleable.OtpView_OtpCursorColor, currentTextColor)
                     cursorWidth = getDimensionPixelSize(
                         R.styleable.OtpView_OtpCursorWidth,
@@ -991,7 +992,7 @@ class OtpView @JvmOverloads constructor(
     }
 
     private fun shouldBlink(): Boolean {
-        return isCursorVisible && isFocused
+        return isCursorVisible && isFocused && isEnabled
     }
 
     private fun makeBlink() {

@@ -48,10 +48,24 @@
         android:id="@+id/otp_view2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="72dp"
+        android:layout_marginTop="120dp"
         android:inputType="number"
+        android:paddingBottom="30dp"
         app:OtpItemCount="6"
         app:OtpItemSpacing="10dp"
         app:OtpLineColor="@color/otp_line_colors"
         app:OtpViewType="line" />
+
+    <com.zorro.optview.OtpView
+        android:id="@+id/otp_view3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:inputType="number"
+        android:paddingBottom="30dp"
+        app:OtpItemCount="6"
+        app:OtpItemRadius="5dp"
+        app:OtpItemSpacing="10dp"
+        app:OtpLineColor="@color/otp_line_colors2"
+        app:OtpViewType="rectangle" />
 </LinearLayout>
