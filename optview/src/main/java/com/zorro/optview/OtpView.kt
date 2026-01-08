@@ -260,7 +260,7 @@ class OtpView @JvmOverloads constructor(
         if (start != text.length) {
             moveSelectionToEnd()
         }
-        if (text.length == otpViewItemCount && onOtpStateListener != null) {
+        if (text.length == otpViewItemCount) {
             onOtpStateListener?.onOtpCompleted(text.toString())
         }
         makeBlink()
