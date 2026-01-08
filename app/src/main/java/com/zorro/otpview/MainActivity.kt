@@ -6,7 +6,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.zorro.optview.OnOtpCompletionListener
+import com.zorro.optview.OnOtpStateListener
 import com.zorro.otpview.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -26,25 +26,35 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this@MainActivity, otpView1.text, Toast.LENGTH_SHORT).show()
                 Toast.makeText(this@MainActivity, otpView2.text, Toast.LENGTH_SHORT).show()
             }
-            otpView1.setOtpCompletionListener(object : OnOtpCompletionListener {
-                override fun onOtpCompleted(otp: String) {
-                    Toast.makeText(
-                        this@MainActivity,
-                        "OnOtpCompletionListener called",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
+            otpView1.setOtpCompletionListener(listener())
+            otpView2.setOtpCompletionListener(listener())
+            otpView3.setOtpCompletionListener(listener())
+        }
+    }
 
-            })
-            otpView2.setOtpCompletionListener(object : OnOtpCompletionListener {
-                override fun onOtpCompleted(otp: String) {
-                    Toast.makeText(
-                        this@MainActivity,
-                        "OnOtpCompletionListener called",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            })
+    private fun listener(): OnOtpStateListener = object : OnOtpStateListener {
+        override fun onFocusChanged(hasFocus: Boolean) {
+            Toast.makeText(
+                this@MainActivity,
+                "onFocusChanged",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+
+        override fun onTextChanged(text: CharSequence) {
+            Toast.makeText(
+                this@MainActivity,
+                "onTextChanged",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+
+        override fun onOtpCompleted(otp: String) {
+            Toast.makeText(
+                this@MainActivity,
+                "OnOtpCompletionListener called",
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 }

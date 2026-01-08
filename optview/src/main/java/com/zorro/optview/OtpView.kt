@@ -91,7 +91,7 @@ class OtpView @JvmOverloads constructor(
     private var rtlTextDirection: Boolean = false
     private var maskingChar: String? = null
     private var isAllCaps = false
-    private var onOtpCompletionListener: OnOtpCompletionListener? = null
+    private var onOtpStateListener: OnOtpStateListener? = null
 
     init {
         super.setCursorVisible(false)
@@ -223,11 +223,12 @@ class OtpView @JvmOverloads constructor(
         lengthBefore: Int,
         lengthAfter: Int
     ) {
+        onOtpStateListener?.onTextChanged(text)
         if (start != text.length) {
             moveSelectionToEnd()
         }
-        if (text.length == otpViewItemCount && onOtpCompletionListener != null) {
-            onOtpCompletionListener?.onOtpCompleted(text.toString())
+        if (text.length == otpViewItemCount && onOtpStateListener != null) {
+            onOtpStateListener?.onOtpCompleted(text.toString())
         }
         makeBlink()
         if (isAnimationEnable) {
@@ -241,6 +242,7 @@ class OtpView @JvmOverloads constructor(
 
     override fun onFocusChanged(focused: Boolean, direction: Int, previouslyFocusedRect: Rect?) {
         super.onFocusChanged(focused, direction, previouslyFocusedRect)
+        onOtpStateListener?.onFocusChanged(focused)
         if (focused) {
             moveSelectionToEnd()
             makeBlink()
@@ -855,8 +857,8 @@ class OtpView @JvmOverloads constructor(
         updateCursorHeight()
     }
 
-    fun setOtpCompletionListener(otpCompletionListener: OnOtpCompletionListener) {
-        this.onOtpCompletionListener = otpCompletionListener
+    fun setOtpCompletionListener(otpCompletionListener: OnOtpStateListener) {
+        this.onOtpStateListener = otpCompletionListener
     }
 
     //region ItemBackground
