@@ -195,26 +195,59 @@ class OtpView @JvmOverloads constructor(
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val widthMode = MeasureSpec.getMode(widthMeasureSpec)
         val heightMode = MeasureSpec.getMode(heightMeasureSpec)
+
         val widthSize = MeasureSpec.getSize(widthMeasureSpec)
         val heightSize = MeasureSpec.getSize(heightMeasureSpec)
-        var width: Int
-        val height: Int
-        val boxHeight = otpViewItemHeight
-        if (widthMode == MeasureSpec.EXACTLY) {
-            width = widthSize
-        } else {
-            val boxesWidth =
-                (otpViewItemCount - 1) * otpViewItemSpacing + otpViewItemCount * otpViewItemWidth
-            width = boxesWidth + ViewCompat.getPaddingEnd(this) + ViewCompat.getPaddingStart(this)
-            if (otpViewItemSpacing == 0) {
-                width -= (otpViewItemCount - 1) * lineWidth
+
+        val paddingH = ViewCompat.getPaddingStart(this) + ViewCompat.getPaddingEnd(this)
+        val paddingV = paddingTop + paddingBottom
+
+        // ---- width ----
+        val desiredContentWidth =
+            otpViewItemCount * otpViewItemWidth + (otpViewItemCount - 1) * otpViewItemSpacing
+
+        val desiredWidth = desiredContentWidth + paddingH
+        val width = when (widthMode) {
+            MeasureSpec.EXACTLY -> {
+                // 父布局给定宽度 → 必须用
+                recalcItemWidthIfNeeded(widthSize, paddingH)
+                widthSize
+            }
+
+            MeasureSpec.AT_MOST -> {
+                // wrap_content → 不能超过父布局给的最大宽度
+                if (desiredWidth <= widthSize) {
+                    desiredWidth
+                } else {
+                    // 超了 → 用最大宽度，并反算 itemWidth
+                    recalcItemWidthIfNeeded(widthSize, paddingH)
+                    widthSize
+                }
+            }
+
+            else -> {
+                // UNSPECIFIED（极少）
+                desiredWidth
             }
         }
-        height = if (heightMode == MeasureSpec.EXACTLY)
+        // ---- height ----
+        val height = if (heightMode == MeasureSpec.EXACTLY)
             heightSize
         else
-            boxHeight + paddingTop + paddingBottom
+            otpViewItemHeight + paddingV
         setMeasuredDimension(width, height)
+    }
+
+    private fun recalcItemWidthIfNeeded(totalWidth: Int, paddingH: Int) {
+        val availableWidth = totalWidth - paddingH
+        val totalSpacing = (otpViewItemCount - 1) * otpViewItemSpacing
+
+        val calculatedItemWidth =
+            (availableWidth - totalSpacing) / otpViewItemCount
+
+        if (calculatedItemWidth > 0) {
+            otpViewItemWidth = calculatedItemWidth
+        }
     }
 
     override fun onTextChanged(
