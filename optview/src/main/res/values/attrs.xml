@@ -27,5 +27,8 @@
         <attr name="OtpState_filled" format="boolean" />
         <attr name="OtpRtlTextDirection" format="boolean" />
         <attr name="OtpMaskingChar" format="string" />
+        <attr name="OtpErrorColor" format="reference|color" />
+        <attr name="OtpErrorShakeEnabled" format="boolean" />
+        <attr name="OtpClearTextOnError" format="boolean" />
     </declare-styleable>
 </resources>

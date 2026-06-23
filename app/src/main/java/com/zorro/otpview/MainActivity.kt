@@ -23,8 +23,11 @@ class MainActivity : AppCompatActivity() {
         }
         vb.apply {
             validateButton.setOnClickListener {
-                Toast.makeText(this@MainActivity, otpView1.text, Toast.LENGTH_SHORT).show()
-                Toast.makeText(this@MainActivity, otpView2.text, Toast.LENGTH_SHORT).show()
+//                Toast.makeText(this@MainActivity, otpView1.text, Toast.LENGTH_SHORT).show()
+//                Toast.makeText(this@MainActivity, otpView2.text, Toast.LENGTH_SHORT).show()
+                otpView1.showError(false)
+                otpView2.showError(false)
+                otpView3.showError(true)
             }
             otpView1.setOtpCompletionListener(listener())
             otpView2.setOtpCompletionListener(listener())

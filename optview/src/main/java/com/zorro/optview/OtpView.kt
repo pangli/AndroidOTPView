@@ -1,5 +1,8 @@
 package com.zorro.optview
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.content.Context
 import android.content.res.ColorStateList
@@ -19,6 +22,7 @@ import android.text.TextPaint
 import android.text.TextUtils
 import android.text.method.MovementMethod
 import android.util.AttributeSet
+import android.view.View
 import android.view.animation.DecelerateInterpolator
 import android.view.inputmethod.EditorInfo
 import androidx.annotation.ColorInt
@@ -92,6 +96,11 @@ class OtpView @JvmOverloads constructor(
     private var maskingChar: String? = null
     private var isAllCaps = false
     private var onOtpStateListener: OnOtpStateListener? = null
+    private var isErrorState = false
+    private var errorColor: Int = Color.RED
+    private var errorShakeEnabled = true
+    private var clearTextOnError = false
+    private var shakeAnimator: ObjectAnimator? = null
 
     init {
         super.setCursorVisible(false)
@@ -135,6 +144,9 @@ class OtpView @JvmOverloads constructor(
                     rtlTextDirection = getBoolean(R.styleable.OtpView_OtpRtlTextDirection, false)
                     maskingChar = getString(R.styleable.OtpView_OtpMaskingChar)
                     isAllCaps = getBoolean(R.styleable.OtpView_android_textAllCaps, false)
+                    errorColor = getColor(R.styleable.OtpView_OtpErrorColor, Color.RED)
+                    errorShakeEnabled = getBoolean(R.styleable.OtpView_OtpErrorShakeEnabled, true)
+                    clearTextOnError = getBoolean(R.styleable.OtpView_OtpClearTextOnError, false)
                 } finally {
                     recycle()
                 }
@@ -256,6 +268,11 @@ class OtpView @JvmOverloads constructor(
         lengthBefore: Int,
         lengthAfter: Int
     ) {
+        // 错误态下，用户一旦修改输入（尤其删除），立即退出错误态
+        if (isErrorState && lengthBefore != lengthAfter) {
+            isErrorState = false
+            invalidate()
+        }
         onOtpStateListener?.onTextChanged(text)
         if (start != text.length) {
             moveSelectionToEnd()
@@ -335,7 +352,12 @@ class OtpView @JvmOverloads constructor(
             } else if (itemSelected) {
                 itemState = selectedState
             }
-            paintC?.setColor(if (itemState != null) getLineColorForState(*itemState) else currentLineColor)
+            val lineColor = if (isErrorState) {
+                errorColor
+            } else {
+                if (itemState != null) getLineColorForState(*itemState) else currentLineColor
+            }
+            paintC?.setColor(lineColor)
             updateItemRectF(i)
             updateCenterPoint()
             canvas.withSave {
@@ -381,7 +403,12 @@ class OtpView @JvmOverloads constructor(
             updateItemRectF(index)
             updateCenterPoint()
             updateOtpViewBoxPath(index)
-            paintC?.setColor(getLineColorForState(*selectedState))
+            val focusedColor = if (isErrorState) {
+                errorColor
+            } else {
+                getLineColorForState(*selectedState)
+            }
+            paintC?.setColor(focusedColor)
             drawOtpBox(canvas, index)
         }
     }
@@ -581,7 +608,8 @@ class OtpView @JvmOverloads constructor(
 
     private fun drawText(canvas: Canvas, i: Int) {
         val paint = getPaintByIndex(i)
-        paint.setColor(currentTextColor)
+        val textColor = if (isErrorState) errorColor else currentTextColor
+        paint.setColor(textColor)
         if (rtlTextDirection) {
             val reversedPosition = otpViewItemCount - i
             var reversedCharPosition = 0
@@ -604,7 +632,8 @@ class OtpView @JvmOverloads constructor(
 
     private fun drawMaskingText(canvas: Canvas, i: Int, maskingChar: String) {
         val paint = getPaintByIndex(i)
-        paint.setColor(currentTextColor)
+        val textColor = if (isErrorState) errorColor else currentTextColor
+        paint.setColor(textColor)
         if (rtlTextDirection) {
             val reversedPosition = otpViewItemCount - i
             val reversedCharPosition = if (text == null) {
@@ -718,6 +747,57 @@ class OtpView @JvmOverloads constructor(
 
     override fun getDefaultMovementMethod(): MovementMethod {
         return instance
+    }
+
+    fun showError(
+        clearInput: Boolean = clearTextOnError,
+        shake: Boolean = errorShakeEnabled
+    ) {
+        isErrorState = true
+        invalidate()
+
+        if (shake) {
+            startShakeAnimation {
+                if (clearInput) {
+                    clearInputAndResetState()
+                }
+            }
+        } else if (clearInput) {
+            clearInputAndResetState()
+        }
+    }
+
+    private fun startShakeAnimation(onEnd: (() -> Unit)? = null) {
+        shakeAnimator?.cancel()
+        val delta = 8f * resources.displayMetrics.density
+
+        shakeAnimator = ObjectAnimator.ofFloat(
+            this,
+            TRANSLATION_X,
+            0f, -delta, delta, -delta, delta, -delta / 2, delta / 2, 0f
+        ).apply {
+            duration = 320L
+            addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator) {
+                    onEnd?.invoke()
+                }
+            })
+            start()
+        }
+    }
+
+    private fun clearInputAndResetState() {
+        text?.clear()
+        moveSelectionToEnd()
+        isErrorState = false
+        invalidate()
+        makeBlink() // 恢复光标闪烁状态
+    }
+
+    fun clearError() {
+        if (!isErrorState) return
+        isErrorState = false
+        invalidate()
     }
 
     /**
